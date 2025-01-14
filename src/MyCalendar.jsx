@@ -183,30 +183,30 @@ const MyCalendar = () => {
     const viewportHeight = window.innerHeight;
     const popupWidth = 400;
     const popupHeight = 200;
-
+  
     let xPosition = rect.right + 10;
     if (xPosition + popupWidth > viewportWidth) {
       xPosition = rect.left - popupWidth - 10;
     }
-
+  
     let yPosition = rect.top;
     if (yPosition + popupHeight > viewportHeight) {
       yPosition = viewportHeight - popupHeight - 10;
     }
-
+  
     setPopupPosition({
       x: xPosition,
       y: yPosition,
     });
-
+  
+    // Get events for the selected time slot
     const events = getEvents();
     const eventsForSlot = events.filter(
       (e) =>
         formatDateForCompare(e.date) === formatDateForCompare(event.date) &&
         e.time === event.time
     );
-
-    // Include both main events and related events
+  
     const allEvents = eventsForSlot.reduce((acc, curr) => {
       acc.push(curr);
       if (curr.relatedEvents) {
@@ -220,12 +220,22 @@ const MyCalendar = () => {
       }
       return acc;
     }, []);
-
-    setSelectedEvent({
-      ...event,
-      relatedEvents: allEvents.filter((e) => e.id !== event.id),
-    });
+  
+    // If multiple events, show the event card list
+    if (allEvents.length > 1) {
+      setSelectedEvent({
+        ...event,
+        relatedEvents: allEvents.filter((e) => e.id !== event.id),
+      });
+    } else {
+      // If only one event, open the interview popup directly
+      setSelectedInterview({
+        ...event,
+        meetingLink: event.meetingLink || "https://meet.google.com", // Fallback link if none provided
+      });
+    }
   };
+  
 
   const handleInterviewClick = (event) => {
     console.log("Selected interview:", event); // For debugging
@@ -258,14 +268,15 @@ const MyCalendar = () => {
                 <div className="event-blue-line"></div>
                 <div className="event-content">
                   <div className="event-title">
-                    {event.title} {event.round && <span>- {event.round}</span>}
+                    {event.title} 
                   </div>
+                  
                   <div className="event-interviewer">
+                  {event.round && <span>{event.round}</span>} |
                     Interviewer: {event.interviewer}
                   </div>
                   <div className="event-datetime">
-                    <span>{event.date}</span>
-                    <span>{event.timeRange}</span>
+                    {event.date} | {event.timeRange}
                   </div>
                 </div>
                 <div className="event-actions">
@@ -382,14 +393,14 @@ const MyCalendar = () => {
     const eventsForSlot = events.filter(
       (e) => formatDateForCompare(e.date) === day && e.time === time
     );
-
+  
     if (eventsForSlot.length === 0) return null;
-
+  
     const mainEvent = eventsForSlot[0];
     const totalEvents =
       eventsForSlot.length +
       (mainEvent.relatedEvents ? mainEvent.relatedEvents.length : 0);
-
+  
     return (
       <div
         className="event-card"
@@ -409,6 +420,7 @@ const MyCalendar = () => {
       </div>
     );
   };
+  
 
   return (
     <div className="calendar-container">
