@@ -237,7 +237,7 @@ const MyCalendar = () => {
 
   const renderEventList = () => {
     if (!selectedEvent) return null;
-
+  
     return (
       <div
         className="event-popup"
@@ -289,9 +289,20 @@ const MyCalendar = () => {
             )
           )}
         </div>
+  
+        {/* Add Close Button */}
+        <div className="close-popup-btn">
+          <button
+            className="close-button-event"
+            onClick={() => setSelectedEvent(null)}
+          >
+            X
+          </button>
+        </div>
       </div>
     );
   };
+  
 
   const renderInterviewDetails = () => {
     if (!selectedInterview) return null;

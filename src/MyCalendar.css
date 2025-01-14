@@ -907,3 +907,24 @@
 .close-button:hover {
   color: #333;
 }
+
+
+.close-popup-btn {
+  position: absolute;
+  top: 1px;
+  right: 10px;
+}
+
+.close-button-event {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 3px 5px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+.close-button-event:hover {
+  background-color: #d32f2f;
+}
