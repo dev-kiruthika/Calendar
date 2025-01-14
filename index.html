@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar View</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="calendar-container">
+      <!-- Navigation and Week Number -->
+      <div class="calendar-header">
+        <div class="nav-buttons">
+          <button class="nav-btn">&lt;</button>
+          <span class="week-number">05</span>
+          <button class="nav-btn">&gt;</button>
+        </div>
+        <div class="date-range">
+          05<sup>th</sup> March to 11<sup>th</sup> March, 2024
+        </div>
+        <div class="view-options">
+          <button>Day</button>
+          <button class="active">Week</button>
+          <button>Month</button>
+          <button>Year</button>
+        </div>
+      </div>
+
+      <!-- Calendar Grid -->
+      <div class="calendar-grid">
+        <!-- Time Column -->
+        <div class="time-column">
+          <div class="time-slot">10 A.M</div>
+          <div class="time-slot">11 A.M</div>
+          <div class="time-slot">12 P.M</div>
+          <div class="time-slot">01 P.M</div>
+          <div class="time-slot">02 P.M</div>
+          <div class="time-slot">03 P.M</div>
+          <div class="time-slot">04 P.M</div>
+          <div class="time-slot">05 P.M</div>
+          <div class="time-slot">06 P.M</div>
+        </div>
+
+        <!-- Days Columns -->
+        <div class="days-grid">
+          <div class="day-column">
+            <div class="day-header">
+              <div class="date">05 Mar</div>
+              <div class="day-name">Monday</div>
+            </div>
+            <!-- Add events here -->
+          </div>
+          <!-- Repeat for other days -->
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
