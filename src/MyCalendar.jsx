@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import DayView from "./DayView";
 import MonthView from "./MonthView";
 import "./MyCalendar.css";
-import Gicon from './google_meet_icon.png';
+import Gicon from "./google_meet_icon.png";
 
 const MyCalendar = () => {
   const [currentView, setCurrentView] = useState("week");
@@ -89,50 +89,6 @@ const MyCalendar = () => {
       return timeA - timeB;
     });
   };
-
-  // Function to merge and format events from both JSON files
-  const fetchAndMergeEvents = async () => {
-    try {
-      const [weekResponse, meetingResponse] = await Promise.all([
-        fetch("/calendarfromtoenddate.json"),
-        fetch("/calendar_meeting.json"),
-      ]);
-
-      const weekData = await weekResponse.json();
-      const meetingData = await meetingResponse.json();
-
-      // Merge and format the data
-      const mergedData = [...weekData];
-
-      meetingData.forEach((meeting) => {
-        if (
-          !mergedData.some(
-            (event) =>
-              event.date === meeting.date && event.time === meeting.time
-          )
-        ) {
-          mergedData.push(meeting);
-        }
-      });
-
-      setCalendarData(mergedData);
-
-      // Get the earliest date from events to set initial week
-      if (mergedData.length > 0) {
-        const dates = mergedData.map((event) => new Date(event.date));
-        const minDate = new Date(Math.min(...dates));
-        setSelectedDate(minDate);
-        updateCurrentWeek(minDate);
-      }
-
-      // Generate time slots from events
-      const allTimeSlots = generateTimeSlots(mergedData);
-      setTimeSlots(allTimeSlots);
-    } catch (error) {
-      console.error("Error fetching calendar data:", error);
-    }
-  };
-
   // Update the useEffect to include updateCurrentWeek in dependencies
   useEffect(() => {
     const fetchAndMergeEvents = async () => {
@@ -279,13 +235,6 @@ const MyCalendar = () => {
     });
   };
 
-  const handleJoinClick = () => {
-    console.log("Selected interview for join:", selectedInterview); // For debugging
-    if (selectedInterview?.meetingLink) {
-      window.open(selectedInterview.meetingLink, "_blank");
-    }
-  };
-
   const renderEventList = () => {
     if (!selectedEvent) return null;
 
@@ -402,11 +351,7 @@ const MyCalendar = () => {
             </div>
           </div>
           <div className="meet-section">
-            <img
-              src={Gicon}
-              alt="Google Meet"
-              className="meet-icon"
-            />
+            <img src={Gicon} alt="Google Meet" className="meet-icon" />
             <a
               href={selectedInterview.meetingLink || "https://meet.google.com"}
               target="_blank"
@@ -462,13 +407,14 @@ const MyCalendar = () => {
           <button className="nav-btn" onClick={() => handleDateChange("prev")}>
             &lt;
           </button>
-          <span className="week-number">{currentWeek.weekNumber}</span>
+
           <button className="nav-btn" onClick={() => handleDateChange("next")}>
             &gt;
           </button>
+          <span className="week-number">{currentWeek.weekNumber}</span>
         </div>
 
-        <div className="date-range">{currentWeek.dateRange}</div>
+        <div className="date-range"><strong>{currentWeek.dateRange}</strong></div>
 
         <div className="view-options">
           <button

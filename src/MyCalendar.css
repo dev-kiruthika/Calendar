@@ -31,6 +31,15 @@
 .week-number {
   font-size: 20px;
   font-weight: bold;
+  color: #4285f4;
+  display: inline-block;
+  width: 70px; /* Width of the rectangle */
+  height: 30px; /* Height of the rectangle */
+  border: 1px  #ccc; /* Border color */
+  background-color: white; 
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for depth */
+  margin: 10px; /* Spacing around the box */
 }
 
 .view-options {
