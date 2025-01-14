@@ -21,7 +21,7 @@
 }
 
 .nav-btn {
-  border: 1px solid #ddd;
+  border: 1px solid #4285f4;
   background: none;
   padding: 5px 12px;
   cursor: pointer;
@@ -932,3 +932,5 @@
 .close-button-event:hover {
   background-color: #d32f2f;
 }
+
+

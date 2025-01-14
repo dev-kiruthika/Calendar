@@ -97,41 +97,48 @@ const MyCalendar = () => {
           fetch("/calendarfromtoenddate.json"),
           fetch("/calendar_meeting.json"),
         ]);
-
+  
         const weekData = await weekResponse.json();
         const meetingData = await meetingResponse.json();
-
+  
+        // Merge data with a unique key for filtering
         const mergedData = [...weekData];
-
+  
         meetingData.forEach((meeting) => {
-          if (
-            !mergedData.some(
-              (event) =>
-                event.date === meeting.date && event.time === meeting.time
-            )
-          ) {
+          // Check if the exact event already exists (using id or unique properties)
+          const isDuplicate = mergedData.some(
+            (event) =>
+              event.date === meeting.date &&
+              event.time === meeting.time &&
+              event.title === meeting.title
+          );
+  
+          if (!isDuplicate) {
             mergedData.push(meeting);
           }
         });
-
+  
+        // Update state
         setCalendarData(mergedData);
-
+  
         if (mergedData.length > 0) {
           const dates = mergedData.map((event) => new Date(event.date));
           const minDate = new Date(Math.min(...dates));
           setSelectedDate(minDate);
           updateCurrentWeek(minDate);
         }
-
+  
+        // Generate unique time slots
         const allTimeSlots = generateTimeSlots(mergedData);
         setTimeSlots(allTimeSlots);
       } catch (error) {
         console.error("Error fetching calendar data:", error);
       }
     };
-
+  
     fetchAndMergeEvents();
   }, [updateCurrentWeek]);
+  
 
   // Update the second useEffect
   useEffect(() => {
@@ -390,16 +397,24 @@ const MyCalendar = () => {
 
   const renderEvent = (day, time) => {
     const events = getEvents();
+    // Filter events based on date and time
     const eventsForSlot = events.filter(
       (e) => formatDateForCompare(e.date) === day && e.time === time
     );
   
     if (eventsForSlot.length === 0) return null;
   
+    // Only pick the main event
     const mainEvent = eventsForSlot[0];
-    const totalEvents =
-      eventsForSlot.length +
-      (mainEvent.relatedEvents ? mainEvent.relatedEvents.length : 0);
+    const relatedEvents = mainEvent.relatedEvents || [];
+  
+    // Combine main event with unique related events
+    const allEvents = [mainEvent, ...relatedEvents].filter(
+      (event, index, self) =>
+        index === self.findIndex((e) => e.id === event.id) // Ensure unique events by id
+    );
+  
+    const totalEvents = allEvents.length;
   
     return (
       <div
@@ -420,6 +435,7 @@ const MyCalendar = () => {
       </div>
     );
   };
+  
   
 
   return (
