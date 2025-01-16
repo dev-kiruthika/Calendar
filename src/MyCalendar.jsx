@@ -199,50 +199,64 @@ const MyCalendar = () => {
     const popupWidth = 400;
     const popupHeight = 200;
 
-    let xPosition = rect.right + 10;
-    if (xPosition + popupWidth > viewportWidth) {
-      xPosition = rect.left - popupWidth - 10;
+    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+    let xPosition = rect.right + 10 + scrollX;
+    let yPosition = rect.top + scrollY;
+
+    if (xPosition + popupWidth > viewportWidth + scrollX) {
+        xPosition = rect.left - popupWidth - 40 + scrollX;
+        if (xPosition < 10) {
+            xPosition = 10;
+        }
     }
 
-    let yPosition = rect.top;
-    if (yPosition + popupHeight > viewportHeight) {
-      yPosition = viewportHeight - popupHeight - 10;
+    if (yPosition + popupHeight > viewportHeight + scrollY) {
+        yPosition = viewportHeight - popupHeight - 10 + scrollY;
+        if (yPosition < 10) {
+            yPosition = 10;
+        }
     }
 
     setPopupPosition({ x: xPosition, y: yPosition });
 
+    // Your existing logic for handling events
+    const events = getEvents();
     const eventsForSlot = events.filter(
-      (e) =>
-        formatDateForCompare(e.date) === formatDateForCompare(event.date) &&
-        e.time === event.time
+        (e) =>
+            formatDateForCompare(e.date) === formatDateForCompare(event.date) &&
+            e.time === event.time
     );
 
     const allEvents = eventsForSlot.reduce((acc, curr) => {
-      acc.push(curr);
-      if (curr.relatedEvents) {
-        acc.push(
-          ...curr.relatedEvents.map((re) => ({
-            ...re,
-            date: curr.date,
-            time: curr.time,
-          }))
-        );
-      }
-      return acc;
+        acc.push(curr);
+        if (curr.relatedEvents) {
+            acc.push(
+                ...curr.relatedEvents.map((re) => ({
+                    ...re,
+                    date: curr.date,
+                    time: curr.time,
+                }))
+            );
+        }
+        return acc;
     }, []);
 
     if (allEvents.length > 1) {
-      setSelectedEvent({
-        ...event,
-        relatedEvents: allEvents.filter((e) => e.id !== event.id),
-      });
+        setSelectedEvent({
+            ...event,
+            relatedEvents: allEvents.filter((e) => e.id !== event.id),
+        });
     } else {
-      setSelectedInterview({
-        ...event,
-        meetingLink: event.meetingLink || "https://meet.google.com",
-      });
+        setSelectedInterview({
+            ...event,
+            meetingLink: event.meetingLink || "https://meet.google.com",
+        });
     }
-  };
+};
+
+
 
   const handleInterviewClick = (event) => {
     console.log("Selected interview:", event);
