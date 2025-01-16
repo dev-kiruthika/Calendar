@@ -1,0 +1,50 @@
+[
+    {
+        "id": 1,
+        "date": "2024-03-05",
+        "time": "10 A.M",
+        "title": "Python Developer",
+        "interviewer": "Geetha",
+        "timeRange": "10 A.M - 11 A.M",
+        "round": "1st Round",
+        "meetingLink": "https://meet.google.com/abc-defg-hij",
+        "relatedEvents": [
+            {
+                "id": 2,
+                "title": "Python Developer",
+                "interviewer": "Geetha",
+                "timeRange": "10 A.M - 11 A.M",
+                "round": "Test",
+                "meetingLink": "https://meet.google.com/xyz-uvwx-yz"
+            },
+            {
+                "id": 3,
+                "title": "Python Developer",
+                "interviewer": "Geetha",
+                "timeRange": "10 A.M - 11 A.M",
+                "round": "2nd Round",
+                "meetingLink": "https://meet.google.com/123-456-789"
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "date": "2024-03-09",
+        "time": "06 P.M",
+        "title": "Django Developer",
+        "interviewer": "Vinodhini",
+        "timeRange": "06 P.M - 07 P.M",
+        "round": "1st Round",
+        "meetingLink": "https://meet.google.com/pqr-stu-vwx",
+        "relatedEvents": [
+            {
+                "id": 5,
+                "title": "Django Developer",
+                "interviewer": "Vinodhini",
+                "timeRange": "06 P.M - 07 P.M",
+                "round": "Test",
+                "meetingLink": "https://meet.google.com/lmn-opq-rst"
+            }
+        ]
+    }
+]

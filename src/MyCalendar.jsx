@@ -18,14 +18,12 @@ const MyCalendar = () => {
   });
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
 
-  // Wrap getWeekNumber in useCallback
   const getWeekNumber = useCallback((date) => {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
     const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
   }, []);
 
-  // Wrap updateCurrentWeek in useCallback since it's used in useEffect
   const updateCurrentWeek = useCallback(
     (date) => {
       const startOfWeek = new Date(date);
@@ -66,30 +64,33 @@ const MyCalendar = () => {
     [getWeekNumber]
   );
 
-  // Function to generate time slots based on events
-  const generateTimeSlots = (events) => {
-    if (!events.length) return [];
+  const generateTimeSlots = (startTime = "09:00", endTime = "20:00") => {
+    const slots = [];
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
+    const [endHours, endMinutes] = endTime.split(':').map(Number);
 
-    // Extract all unique times from events
-    const times = new Set();
-    events.forEach((event) => {
-      times.add(event.time);
-      if (event.relatedEvents) {
-        event.relatedEvents.forEach((relatedEvent) => {
-          const timeFromRange = relatedEvent.timeRange.split("-")[0].trim();
-          times.add(timeFromRange);
-        });
-      }
-    });
+    let currentTime = new Date();
+    currentTime.setHours(startHours, startMinutes, 0, 0);
 
-    // Convert to array and sort
-    return Array.from(times).sort((a, b) => {
-      const timeA = new Date(`2024/01/01 ${a.replace(".", ":")}`);
-      const timeB = new Date(`2024/01/01 ${b.replace(".", ":")}`);
-      return timeA - timeB;
-    });
+    const endTimeDate = new Date();
+    endTimeDate.setHours(endHours, endMinutes, 0, 0);
+
+    while (currentTime <= endTimeDate) {
+      let hours = currentTime.getHours();
+      const minutes = currentTime.getMinutes().toString().padStart(2, '0');
+      const period = hours >= 12 ? 'PM' : 'AM';
+
+      hours = hours % 12 || 12; // Convert to 12-hour format
+
+      const timeSlot = `${hours}:${minutes} ${period}`;
+      slots.push(timeSlot);
+
+      currentTime.setHours(currentTime.getHours() + 1);
+    }
+
+    return slots;
   };
-  // Update the useEffect to include updateCurrentWeek in dependencies
+
   useEffect(() => {
     const fetchAndMergeEvents = async () => {
       try {
@@ -97,55 +98,48 @@ const MyCalendar = () => {
           fetch("/calendarfromtoenddate.json"),
           fetch("/calendar_meeting.json"),
         ]);
-  
+
         const weekData = await weekResponse.json();
         const meetingData = await meetingResponse.json();
-  
-        // Merge data with a unique key for filtering
+
         const mergedData = [...weekData];
-  
+
         meetingData.forEach((meeting) => {
-          // Check if the exact event already exists (using id or unique properties)
           const isDuplicate = mergedData.some(
             (event) =>
               event.date === meeting.date &&
               event.time === meeting.time &&
               event.title === meeting.title
           );
-  
+
           if (!isDuplicate) {
             mergedData.push(meeting);
           }
         });
-  
-        // Update state
+
         setCalendarData(mergedData);
-  
+
         if (mergedData.length > 0) {
           const dates = mergedData.map((event) => new Date(event.date));
           const minDate = new Date(Math.min(...dates));
           setSelectedDate(minDate);
           updateCurrentWeek(minDate);
         }
-  
-        // Generate unique time slots
-        const allTimeSlots = generateTimeSlots(mergedData);
+
+        const allTimeSlots = generateTimeSlots();
         setTimeSlots(allTimeSlots);
       } catch (error) {
         console.error("Error fetching calendar data:", error);
       }
     };
-  
+
     fetchAndMergeEvents();
   }, [updateCurrentWeek]);
-  
 
-  // Update the second useEffect
   useEffect(() => {
     updateCurrentWeek(selectedDate);
   }, [selectedDate, updateCurrentWeek]);
 
-  // Function to format date for comparison
   const formatDateForCompare = (date) => {
     return new Date(date).toLocaleDateString("en-US", {
       day: "2-digit",
@@ -153,10 +147,8 @@ const MyCalendar = () => {
     });
   };
 
-  // Update getEvents to handle the merged data
   const getEvents = () => {
     if (!calendarData) return [];
-
     return calendarData.map((event) => ({
       ...event,
       meetingLink: event.meetingLink,
@@ -169,6 +161,22 @@ const MyCalendar = () => {
   };
 
   const events = getEvents();
+
+  const convertTo24HourFormat = (time) => {
+    let [timePart, modifier] = time.split(" ");
+    let [hours, minutes] = timePart.split(":").map(Number);
+
+    // Normalize the modifier to handle both "A.M" and "AM"
+    modifier = modifier.replace(".", "").toUpperCase();
+
+    if (modifier === "PM" && hours < 12) {
+        hours += 12;
+    } else if (modifier === "AM" && hours === 12) {
+        hours = 0;
+    }
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes || 0).padStart(2, '0')}`;
+};
 
   const handleDateChange = (direction) => {
     setSelectedDate((prevDate) => {
@@ -190,30 +198,25 @@ const MyCalendar = () => {
     const viewportHeight = window.innerHeight;
     const popupWidth = 400;
     const popupHeight = 200;
-  
+
     let xPosition = rect.right + 10;
     if (xPosition + popupWidth > viewportWidth) {
       xPosition = rect.left - popupWidth - 10;
     }
-  
+
     let yPosition = rect.top;
     if (yPosition + popupHeight > viewportHeight) {
       yPosition = viewportHeight - popupHeight - 10;
     }
-  
-    setPopupPosition({
-      x: xPosition,
-      y: yPosition,
-    });
-  
-    // Get events for the selected time slot
-    const events = getEvents();
+
+    setPopupPosition({ x: xPosition, y: yPosition });
+
     const eventsForSlot = events.filter(
       (e) =>
         formatDateForCompare(e.date) === formatDateForCompare(event.date) &&
         e.time === event.time
     );
-  
+
     const allEvents = eventsForSlot.reduce((acc, curr) => {
       acc.push(curr);
       if (curr.relatedEvents) {
@@ -227,34 +230,31 @@ const MyCalendar = () => {
       }
       return acc;
     }, []);
-  
-    // If multiple events, show the event card list
+
     if (allEvents.length > 1) {
       setSelectedEvent({
         ...event,
         relatedEvents: allEvents.filter((e) => e.id !== event.id),
       });
     } else {
-      // If only one event, open the interview popup directly
       setSelectedInterview({
         ...event,
-        meetingLink: event.meetingLink || "https://meet.google.com", // Fallback link if none provided
+        meetingLink: event.meetingLink || "https://meet.google.com",
       });
     }
   };
-  
 
   const handleInterviewClick = (event) => {
-    console.log("Selected interview:", event); // For debugging
+    console.log("Selected interview:", event);
     setSelectedInterview({
       ...event,
-      meetingLink: event.meetingLink || "https://meet.google.com", // Fallback link if none provided
+      meetingLink: event.meetingLink || "https://meet.google.com",
     });
   };
 
   const renderEventList = () => {
     if (!selectedEvent) return null;
-  
+
     return (
       <div
         className="event-popup"
@@ -275,11 +275,11 @@ const MyCalendar = () => {
                 <div className="event-blue-line"></div>
                 <div className="event-content">
                   <div className="event-title">
-                    {event.title} 
+                    {event.title}
                   </div>
-                  
+
                   <div className="event-interviewer">
-                  {event.round && <span>{event.round}</span>} |
+                    {event.round && <span>{event.round}</span>} |
                     Interviewer: {event.interviewer}
                   </div>
                   <div className="event-datetime">
@@ -291,7 +291,7 @@ const MyCalendar = () => {
                     className="edit-button"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    ✎
+                    ✏️
                   </button>
                   <button
                     className="delete-button"
@@ -300,15 +300,14 @@ const MyCalendar = () => {
                       setSelectedEvent(null);
                     }}
                   >
-                    🗑
+                    🗑️
                   </button>
                 </div>
               </div>
             )
           )}
         </div>
-  
-        {/* Add Close Button */}
+
         <div className="close-popup-btn">
           <button
             className="close-button-event"
@@ -320,7 +319,6 @@ const MyCalendar = () => {
       </div>
     );
   };
-  
 
   const renderInterviewDetails = () => {
     if (!selectedInterview) return null;
@@ -328,12 +326,12 @@ const MyCalendar = () => {
     return (
       <div className="interview-details-popup">
         <div className="popup-header">
-          <span className="popup-date">29 August 2024</span>
+          <span className="popup-date">Interview Details</span>
           <button
             className="close-button"
             onClick={() => setSelectedInterview(null)}
           >
-            ×
+            ✖️
           </button>
         </div>
         <div className="popup-content">
@@ -397,25 +395,31 @@ const MyCalendar = () => {
 
   const renderEvent = (day, time) => {
     const events = getEvents();
-    // Filter events based on date and time
+
+    // Convert the provided time to 24-hour format for comparison
+    const time24 = convertTo24HourFormat(time);
+
     const eventsForSlot = events.filter(
-      (e) => formatDateForCompare(e.date) === day && e.time === time
+      (e) =>
+        formatDateForCompare(e.date) === day && convertTo24HourFormat(e.time) === time24
     );
-  
+
+    // Check if events are found
+    console.log("Events for Slot:", eventsForSlot);
     if (eventsForSlot.length === 0) return null;
-  
+
     // Only pick the main event
     const mainEvent = eventsForSlot[0];
     const relatedEvents = mainEvent.relatedEvents || [];
-  
+
     // Combine main event with unique related events
     const allEvents = [mainEvent, ...relatedEvents].filter(
       (event, index, self) =>
-        index === self.findIndex((e) => e.id === event.id) // Ensure unique events by id
+        index === self.findIndex((e) => e.id === event.id)
     );
-  
+
     const totalEvents = allEvents.length;
-  
+
     return (
       <div
         className="event-card"
@@ -435,8 +439,6 @@ const MyCalendar = () => {
       </div>
     );
   };
-  
-  
 
   return (
     <div className="calendar-container">
